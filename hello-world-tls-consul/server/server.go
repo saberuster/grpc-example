@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/saberuster/grpc-example/hello-world-tls-consul/internal"
 	"github.com/saberuster/grpc-example/hello-world-tls-consul/pb"
@@ -11,25 +12,28 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"strconv"
 )
 
-const (
-	address      = ":9900"
-	certFilePath = "hello-world-tls-consul/public.pem"
-	keyFilePath  = "hello-world-tls-consul/private.key"
+var (
+	address  = flag.String("address", "127.0.0.1", "listener address")
+	port     = flag.Int("port", 9090, "port")
+	certPath = flag.String("crt", "public.pem", "crt")
+	keyPath  = flag.String("key", "private.key", "key")
 )
 
 func main() {
+	flag.Parse()
 	log := grpclog.NewLoggerV2(os.Stdout, ioutil.Discard, ioutil.Discard)
 	grpclog.SetLoggerV2(log)
 	grpclog.Infoln("server start...")
-	internal.RegisterService("hello", "localhost", 9900)
-	ln, err := net.Listen("tcp4", address)
+	internal.RegisterService("hello", *address, *port)
+	ln, err := net.Listen("tcp4", net.JoinHostPort(*address, strconv.Itoa(*port)))
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	creds, err := credentials.NewServerTLSFromFile(certFilePath, keyFilePath)
+	creds, err := credentials.NewServerTLSFromFile(*certPath, *keyPath)
 	if err != nil {
 		log.Fatal(err)
 		return

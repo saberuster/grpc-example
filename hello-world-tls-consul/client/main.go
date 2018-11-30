@@ -15,13 +15,13 @@ import (
 
 const (
 	address      = "consul:///hello"
-	certFilePath = "hello-world-tls-consul/public.pem"
+	certFilePath = "hello-world-tls-consul/bin/public.pem"
 )
 
 func main() {
 	log := grpclog.NewLoggerV2(os.Stdout, ioutil.Discard, ioutil.Discard)
 	grpclog.SetLoggerV2(log)
-	resolver.Register(internal.NewResolveBuilder("127.0.0.1", "8500"))
+	resolver.Register(internal.NewResolveBuilder("192.168.137.174", "8500"))
 
 	creds, err := credentials.NewClientTLSFromFile(certFilePath, "")
 	if err != nil {

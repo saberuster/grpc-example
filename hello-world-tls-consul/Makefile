@@ -8,3 +8,8 @@ genssl:
 
 runconsul:
 	docker run --name=dev-consul1.4 --rm -e CONSUL_BIND_INTERFACE=eth0 -p8500:8500 consul:1.4.0-rc1
+
+build-server:
+	rm bin/server
+	go build -o bin/server github.com/saberuster/grpc-example/hello-world-tls-consul/server
+

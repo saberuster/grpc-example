@@ -24,6 +24,7 @@ func init() {
 
 func RegisterService(name string, address string, port int) {
 	grpclog.Infoln(c.Agent().ServiceRegister(&api.AgentServiceRegistration{
+		ID:      fmt.Sprintf("%s-%s-%d", name, address, port),
 		Name:    name,
 		Address: address,
 		Port:    port,
@@ -89,18 +90,22 @@ func (cr *consulResolve) watch() {
 			return
 		case <-cr.rn:
 		case <-cr.t.C:
-			as, _, err := c.Agent().Service(cr.target.Endpoint, nil)
+			as, _, err := c.Catalog().Service(cr.target.Endpoint, "", nil)
 			if err != nil {
 				grpclog.Errorln(err)
 				return
 			}
-			cr.cc.NewAddress([]resolver.Address{
-				{
-					Addr:       fmt.Sprintf("%s:%d", as.Address, as.Port),
+
+			addrs := make([]resolver.Address, 0, len(as))
+
+			for _, v := range as {
+				addrs = append(addrs, resolver.Address{
+					Addr:       fmt.Sprintf("%s:%d", v.ServiceAddress, v.ServicePort),
 					Type:       resolver.Backend,
-					ServerName: as.Address,
-				},
-			})
+					ServerName: v.ServiceID,
+				})
+			}
+			cr.cc.NewAddress(addrs)
 			cr.t.Reset(5 * time.Second)
 		}
 	}
